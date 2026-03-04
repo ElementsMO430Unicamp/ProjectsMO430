@@ -62,7 +62,7 @@ No modelo a seguir são colocados exemplos ilustrativos, que serão substituído
 > [modelo de base](https://docs.google.com/presentation/d/10RN7bDKUka_Ro2_41WyEE76Wxm4AioiJOrsh6BRY3Kk/edit?usp=sharing) para construir o seu.
 > Coloque a imagem do PNG do seu modelo lógico como ilustrado abaixo (a imagem estará na pasta `image`):
 >
-> ![Modelo Lógico de Grafos](images/modelo-logico-grafos.png)
+> ![Modelo Lógico de Grafos](assets/images/modelo-logico-grafos.png)
 
 # Metodologia
 > Esta seção evoluirá ao longo do projeto. Nesta primeira entrega, informe técnicas de Ciência de Redes que pretende explorar,
