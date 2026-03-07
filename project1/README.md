@@ -17,6 +17,8 @@ A fim de uniformizar os repositórios de projetos da disciplina, os diretórios 
         └── slides  <- slides da prévia (em PDF)
 ~~~
 
+
+
 Na raiz da pasta `project1` deve haver um arquivo de nome `README.md` contendo a apresentação do projeto, como detalhado a seguir.
 
 Segue abaixo o modelo de como deve ser apresentado e documentado o projeto. Há partes do modelo a seguir que têm uma marcação específica indicando que **não devem ser literalmente transcritas**:
@@ -63,6 +65,30 @@ No modelo a seguir são colocados exemplos ilustrativos, que serão substituído
 > Coloque a imagem do PNG do seu modelo lógico como ilustrado abaixo (a imagem estará na pasta `image`):
 >
 > ![Modelo Lógico de Grafos](assets/images/modelo-logico-grafos.png)
+
+```mermaid
+%%{init: {"flowchart": {"curve": "basis"}}}%%
+flowchart LR
+    %% Nós principais em formato de elipse
+    Drug([Drug])
+    Pathology([Pathology])
+
+    %% Relacionamentos (Arestas) com a nova curvatura
+    Drug -- SameAs --> Drug
+    Drug -- Treats --> Pathology
+
+    %% Caixas de texto para os atributos
+    Drug_Attrs["drugbank: string<br>name: string"]
+    Pathology_Attrs["name: string"]
+
+    %% Conectando os atributos aos nós (linhas invisíveis ou sólidas)
+    Drug --- Drug_Attrs
+    Pathology --- Pathology_Attrs
+
+    %% Removendo o fundo e a borda das caixas de atributos para imitar o texto solto
+    style Drug_Attrs fill:transparent,stroke:transparent,text-align:left
+    style Pathology_Attrs fill:transparent,stroke:transparent,text-align:left
+```
 
 # Metodologia
 > Esta seção evoluirá ao longo do projeto. Nesta primeira entrega, informe técnicas de Ciência de Redes que pretende explorar,
