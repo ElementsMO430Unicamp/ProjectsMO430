@@ -31,21 +31,24 @@ No modelo a seguir são colocados exemplos ilustrativos, que serão substituído
 
 > *arquivo `README.md` que fica na raiz*
 
-# Projeto `<Título do Projeto>`
-# Project `<Title in English>`
+## Projeto Identificação de Hub Genes na Rede Proteômica de Long COVID
+## Project Identification of Hub Genes in the Proteomics Network of Long COVID
 
 > Incluir nome RA e foco de especialização de cada membro do grupo.
 > |Nome  | RA | Especialização|
 > |--|--|--|
-> | Nome1  | 123456  | Biologia |
-> | Nome2  | 123456  | Saúde |
-> | Nome3  | 123456  | Computação |
-> | Nome4  | 123456  | XXX|
+> | Luisa Freitas Colafati  | 247249  | Computação |
+> | Maria Vitória Barbosa Valladares  | 299208  | Computação |
+> | Sabrina tomaz barbosa  | 324065  | Computação |
+> | Muhammad ZUHAIR  | 123456  | Biologia|
+> | Carlos Eduardo Rosa Luengo   | 300612  | Biologia|
+> | Carlos Vinícius Araki Oliveira  | 160141  | Computação|
+> | Mary Cristina Hernandez Xavier | 324043  | Saúde|
 
 # Apresentação
 
 O presente projeto foi originado no contexto das atividades da disciplina de pós-graduação [*Ciência e Visualização de Dados em Saúde*](https://github.com/datasci4health), oferecida no segundo semestre de 2025, na Unicamp.
 
-# Descrição Resumida do Projeto
-> Descrição do tema do projeto, incluindo motivação e contexto gerador.
+### Descrição Resumida do Projeto
+O projeto tem como foco o estudo das redes Proteômicas associadas às sequelas pós-COVID-19, condição crônica também conhecida como Long COVID ou PASC (Post-Acute Sequelae of SARS-CoV-2 infection). Estima-se que uma parcela significativa dos sobreviventes da COVID-19 sofra com sintomas persistentes e multissistêmicos, gerando alta morbidade e evidenciando a necessidade de análise de big data em saúde. Diante da complexidade da síndrome, que engloba sintomas neurológicos, cardiovasculares, respiratórios e imunológicos, o projeto propõe utilizar a ciência de redes para entender a fisiopatologia por trás da doença. Através da análise das interações proteína-proteína (PPI), o estudo busca mapear as conexões biomoleculares da doença para encontrar nós de alta conectividade que justifiquem a diversidade fenotípica observada nos pacientes.
 
