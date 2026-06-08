@@ -1,0 +1,32 @@
+# Taxonomia de sintomas / fenótipos para classificação (long COVID / PASC)
+# Uma categoria por linha. Linhas com # são ignoradas.
+
+cefaleia
+fadiga
+dispneia
+tosse
+mialgia
+artralgia
+anosmia
+disgeusia
+brain fog
+palpitações
+dor torácica
+distúrbios gastrointestinais
+perda de apetite
+náusea
+vômito
+diarreia
+inflamação
+distúrbios do sono
+insônia
+ansiedade
+depressão
+febre
+tontura
+neuropatia periférica
+rash cutâneo
+perda de cabelo
+disfunção autonômica
+hipoxemia
+redução da capacidade funcional
