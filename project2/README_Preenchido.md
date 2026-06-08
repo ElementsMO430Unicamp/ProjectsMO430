@@ -15,11 +15,9 @@ A sindrome pos-COVID-19 exige abordagem de biologia de sistemas para compreender
 
 # Perguntas de Pesquisa
 
-1. Quais proteinas atuam como nos centrais de alta influencia (hub genes) na rede de interacao de pacientes sintomaticos no estagio pos-COVID-19?
-2. Quais modulos de proteinas (comunidades) se associam aos principais grupos de sintomas persistentes da sindrome?
-3. Quais caminhos biologicos podem ser priorizados para investigacao translacional a partir dos hubs encontrados?
+**Quais proteínas atuam como nós centrais de alta influência (hub genes) na rede de interação de pacientes sintomáticos no estágio pós-COVID-19 ?**
 
-No estagio atual, a contribuicao direta para essas perguntas esta na definicao da modelagem de rede, no mapeamento das fontes de dados e na especificacao das tecnicas de analise que serao executadas.
+
 
 # Metodologia
 
