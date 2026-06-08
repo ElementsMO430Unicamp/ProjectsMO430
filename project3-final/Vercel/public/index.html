@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>map05171 — log2 fold change 3D isometric view</title>
+<style>
+* { box-sizing: border-box; }
+body {
+	margin: 0;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	background: #1a1f2e;
+	color: #eee;
+	overflow: hidden;
+}
+#ui {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	z-index: 10;
+	padding: 12px 16px 20px;
+	background: linear-gradient(180deg, rgba(26,31,46,0.97) 85%, transparent);
+	pointer-events: none;
+}
+.filter-bar {
+	pointer-events: auto;
+	margin-top: 12px;
+	padding: 10px 12px;
+	background: rgba(10, 12, 20, 0.72);
+	border: 1px solid rgba(255,255,255,0.1);
+	border-radius: 8px;
+}
+.filter-bar label {
+	display: block;
+	font-size: 12px;
+	font-weight: 600;
+	margin-bottom: 8px;
+	color: #ccd;
+}
+.filter-sliders {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 10px 16px;
+}
+.filter-sliders .field {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-size: 11px;
+	color: #99a;
+}
+.filter-sliders input[type="range"] {
+	width: 100%;
+	accent-color: #6a9fd8;
+}
+.filter-meta {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-top: 8px;
+	font-size: 11px;
+	color: #889;
+	flex-wrap: wrap;
+}
+.filter-meta button {
+	pointer-events: auto;
+	padding: 4px 10px;
+	font-size: 11px;
+	border: 1px solid rgba(255,255,255,0.2);
+	border-radius: 4px;
+	background: rgba(255,255,255,0.06);
+	color: #ccd;
+	cursor: pointer;
+}
+.filter-meta button:hover {
+	background: rgba(255,255,255,0.12);
+}
+.project-about {
+	pointer-events: auto;
+	max-width: 640px;
+	background: rgba(15, 18, 28, 0.88);
+	border: 1px solid rgba(255,255,255,0.12);
+	border-radius: 8px;
+	overflow: hidden;
+}
+.project-about summary {
+	padding: 10px 12px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #ccd;
+	cursor: pointer;
+	list-style: none;
+}
+.project-about summary::-webkit-details-marker {
+	display: none;
+}
+.project-about summary::before {
+	content: '▸ ';
+}
+.project-about[open] summary::before {
+	content: '▾ ';
+}
+.about-body {
+	padding: 0 12px 12px;
+	font-size: 12px;
+	line-height: 1.55;
+	color: #aab;
+}
+.about-body p {
+	margin: 0 0 10px 0;
+}
+.about-body ul {
+	margin: 6px 0 10px 0;
+	padding-left: 18px;
+}
+.about-body li {
+	margin-bottom: 3px;
+}
+.about-body h1 {
+	margin: 0 0 6px 0;
+	font-size: 18px;
+	font-weight: 600;
+	color: #eee;
+}
+.about-body .intro {
+	margin: 0 0 12px 0;
+	font-size: 13px;
+	color: #aab;
+}
+.about-body .legend {
+	margin-top: 4px;
+}
+.export-bar {
+	pointer-events: auto;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 8px;
+	max-width: 640px;
+}
+.export-bar button {
+	padding: 7px 12px;
+	font-size: 11px;
+	border: 1px solid rgba(255,255,255,0.22);
+	border-radius: 6px;
+	background: rgba(106, 159, 216, 0.18);
+	color: #ddeeff;
+	cursor: pointer;
+}
+.export-bar button:hover {
+	background: rgba(106, 159, 216, 0.32);
+}
+.legend {
+	display: flex;
+	gap: 20px;
+	flex-wrap: wrap;
+	font-size: 12px;
+}
+.legend-item {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+.swatch {
+	width: 14px;
+	height: 14px;
+	border-radius: 2px;
+	border: 1px solid rgba(255,255,255,0.3);
+}
+.swatch.pos { background: #b2182b; }
+.swatch.neg { background: #2166ac; }
+#tooltip {
+	position: fixed;
+	display: none;
+	padding: 8px 10px;
+	background: rgba(0,0,0,0.85);
+	border: 1px solid #555;
+	border-radius: 4px;
+	font-size: 12px;
+	pointer-events: none;
+	z-index: 20;
+	white-space: nowrap;
+}
+#canvas-host {
+	width: 100vw;
+	height: 100vh;
+}
+#hint {
+	position: fixed;
+	bottom: 12px;
+	right: 16px;
+	font-size: 11px;
+	color: #889;
+	z-index: 10;
+}
+</style>
+</head>
+<body>
+<div id="ui">
+	<details class="project-about">
+		<summary>About this project</summary>
+		<div class="about-body">
+			<h1>map05171 — 3D isometric log2 fold change bars</h1>
+			<p class="intro">Bar height = |log2FC|. Red = up · Blue = down. Data: silver_pathway_areasv1.csv (96 areas).</p>
+			<p>
+				This interactive visualization shows differential gene expression from the GEO dataset
+				<strong>GSE251849</strong>, comparing <strong>healthy controls</strong> with individuals with
+				<strong>long COVID</strong>. Pathway context is provided by the KEGG reference map
+				<strong>map05171</strong> (Coronavirus disease).
+			</p>
+			<p>
+				Developed for the course <strong>Science and Data Visualization in Healthcare</strong>
+				(1s2026), taught by <strong>Prof. Dr. André Santanchè</strong> and
+				<strong>Prof. Dr. Murilo Vieira Geraldo</strong>.
+			</p>
+			<p><strong>Team members:</strong></p>
+			<ul>
+				<li>Carlos Vinícius Araki Oliveira</li>
+				<li>Carlos Eduardo Rosa Luengo</li>
+				<li>Sabrina Tomaz Barbosa</li>
+				<li>Luisa Freitas Colafati</li>
+				<li>Maria Vitória Barbosa Valladares</li>
+				<li>Muhammad Zuhair</li>
+				<li>Mary Cristina Hernandez Xavier</li>
+			</ul>
+			<div class="legend">
+				<div class="legend-item"><span class="swatch pos"></span> log2FC &gt; 0 (up to 1.68)</div>
+				<div class="legend-item"><span class="swatch neg"></span> log2FC &lt; 0 (down to -2.95)</div>
+			</div>
+			<div class="filter-bar">
+				<label for="pvalue-min">p-value filter (minimum p-value per area)</label>
+				<div class="filter-sliders">
+					<div class="field">
+						<span>Minimum: <strong id="pvalue-min-label"></strong></span>
+						<input type="range" id="pvalue-min" min="0" max="1000" value="0" step="1">
+					</div>
+					<div class="field">
+						<span>Maximum: <strong id="pvalue-max-label"></strong></span>
+						<input type="range" id="pvalue-max" min="0" max="1000" value="1000" step="1">
+					</div>
+				</div>
+				<div class="filter-meta">
+					<span id="pvalue-count"></span>
+					<button type="button" id="pvalue-reset">Clear filter</button>
+				</div>
+			</div>
+		</div>
+	</details>
+	<div class="export-bar">
+		<button type="button" id="export-png">Export isometric view (PNG)</button>
+		<button type="button" id="export-svg">Export flat pathway (SVG)</button>
+	</div>
+</div>
+<div id="tooltip"></div>
+<div id="hint">Drag to rotate · scroll to zoom</div>
+<div id="canvas-host"></div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const AREAS = [{"id": "8FAC7FE1", "symbols": ["ACE"], "entries": [{"symbol": "ACE", "log2": 0.287258, "pvalue": 0.339}], "log2": 0.287258, "pvalue": 0.339, "abs": 0.287258, "cx": 241.0, "cy": 687.5, "w": 46.0, "h": 17.0}, {"id": "4F9E7AFE", "symbols": ["ADAM17"], "entries": [{"symbol": "ADAM17", "log2": 0.0861969, "pvalue": 0.67}], "log2": 0.0861969, "pvalue": 0.67, "abs": 0.0861969, "cx": 411.0, "cy": 764.5, "w": 46.0, "h": 17.0}, {"id": "2BB58713", "symbols": ["TNF"], "entries": [{"symbol": "TNF", "log2": -1.28951, "pvalue": 0.00974}], "log2": -1.28951, "pvalue": 0.00974, "abs": 1.28951, "cx": 375.0, "cy": 792.5, "w": 46.0, "h": 17.0}, {"id": "12BA0AA2", "symbols": ["IL6R"], "entries": [{"symbol": "IL6R", "log2": -0.539295, "pvalue": 0.00136}], "log2": -0.539295, "pvalue": 0.00136, "abs": 0.539295, "cx": 375.0, "cy": 841.5, "w": 46.0, "h": 17.0}, {"id": "6A6C7495", "symbols": ["IL6R"], "entries": [{"symbol": "IL6R", "log2": -0.539295, "pvalue": 0.00136}], "log2": -0.539295, "pvalue": 0.00136, "abs": 0.539295, "cx": 411.0, "cy": 1121.5, "w": 46.0, "h": 17.0}, {"id": "C4DEF086", "symbols": ["STAT3"], "entries": [{"symbol": "STAT3", "log2": -0.248366, "pvalue": 0.124}], "log2": -0.248366, "pvalue": 0.124, "abs": 0.248366, "cx": 721.0, "cy": 1130.5, "w": 46.0, "h": 17.0}, {"id": "FBDCD8F0", "symbols": ["IL6"], "entries": [{"symbol": "IL6", "log2": -1.1835, "pvalue": 0.128}], "log2": -1.1835, "pvalue": 0.128, "abs": 1.1835, "cx": 314.0, "cy": 1130.5, "w": 46.0, "h": 17.0}, {"id": "E34D2C22", "symbols": ["JAK1"], "entries": [{"symbol": "JAK1", "log2": 0.192438, "pvalue": 0.024774}], "log2": 0.192438, "pvalue": 0.024774, "abs": 0.192438, "cx": 457.0, "cy": 1130.5, "w": 46.0, "h": 17.0}, {"id": "3AD77737", "symbols": ["IL1B"], "entries": [{"symbol": "IL1B", "log2": -2.94623, "pvalue": 7.38e-05}], "log2": -2.94623, "pvalue": 7.38e-05, "abs": 2.94623, "cx": 1218.0, "cy": 1431.5, "w": 46.0, "h": 17.0}, {"id": "AA2FEB2B", "symbols": ["IL6"], "entries": [{"symbol": "IL6", "log2": -1.1835, "pvalue": 0.128}], "log2": -1.1835, "pvalue": 0.128, "abs": 1.1835, "cx": 1270.0, "cy": 1408.5, "w": 46.0, "h": 17.0}, {"id": "C143DF32", "symbols": ["TNF"], "entries": [{"symbol": "TNF", "log2": -1.28951, "pvalue": 0.00974}], "log2": -1.28951, "pvalue": 0.00974, "abs": 1.28951, "cx": 1218.0, "cy": 1408.5, "w": 46.0, "h": 17.0}, {"id": "23C38330", "symbols": ["IL12A"], "entries": [{"symbol": "IL12A", "log2": 0.357384, "pvalue": 0.071253}], "log2": 0.357384, "pvalue": 0.071253, "abs": 0.357384, "cx": 1270.0, "cy": 1431.5, "w": 46.0, "h": 17.0}, {"id": "56475BC1", "symbols": ["TLR3"], "entries": [{"symbol": "TLR3", "log2": 0.10996, "pvalue": 0.828}], "log2": 0.10996, "pvalue": 0.828, "abs": 0.10996, "cx": 551.0, "cy": 1483.5, "w": 46.0, "h": 17.0}, {"id": "563FF232", "symbols": ["TLR7", "TLR8"], "entries": [{"symbol": "TLR7", "log2": -0.345528, "pvalue": 0.114056}, {"symbol": "TLR8", "log2": 0.408112, "pvalue": 0.378}], "log2": 0.031291999999999986, "pvalue": 0.114056, "abs": 0.031291999999999986, "cx": 551.0, "cy": 1438.5, "w": 46.0, "h": 17.0}, {"id": "6D6D6606", "symbols": ["TLR2", "TLR4"], "entries": [{"symbol": "TLR2", "log2": -0.446929, "pvalue": 0.0756}, {"symbol": "TLR4", "log2": -0.0566339, "pvalue": 0.837}], "log2": -0.25178145, "pvalue": 0.0756, "abs": 0.25178145, "cx": 411.0, "cy": 1366.5, "w": 46.0, "h": 17.0}, {"id": "4AE77FDA", "symbols": ["RIGI"], "entries": [{"symbol": "RIGI", "log2": 0.0193085, "pvalue": 0.947}], "log2": 0.0193085, "pvalue": 0.947, "abs": 0.0193085, "cx": 599.0, "cy": 1563.5, "w": 46.0, "h": 17.0}, {"id": "DE7C4829", "symbols": ["MYD88"], "entries": [{"symbol": "MYD88", "log2": 0.0767599, "pvalue": 0.705}], "log2": 0.0767599, "pvalue": 0.705, "abs": 0.0767599, "cx": 513.0, "cy": 1366.5, "w": 46.0, "h": 17.0}, {"id": "51E3C051", "symbols": ["IRAK1", "IRAK4"], "entries": [{"symbol": "IRAK1", "log2": -0.263371, "pvalue": 0.172}, {"symbol": "IRAK4", "log2": 0.187798, "pvalue": 0.108592}], "log2": -0.037786500000000015, "pvalue": 0.108592, "abs": 0.037786500000000015, "cx": 615.0, "cy": 1366.5, "w": 46.0, "h": 17.0}, {"id": "27BBBF63", "symbols": ["NFKBIA", "NFKBIB"], "entries": [{"symbol": "NFKBIA", "log2": -1.37878, "pvalue": 0.00581}, {"symbol": "NFKBIB", "log2": -0.533817, "pvalue": 0.0496}], "log2": -0.9562984999999999, "pvalue": 0.00581, "abs": 0.9562984999999999, "cx": 973.0, "cy": 1389.5, "w": 46.0, "h": 17.0}, {"id": "292F5351", "symbols": ["NFKB1", "RELA"], "entries": [{"symbol": "NFKB1", "log2": -1.11864, "pvalue": 0.00784}, {"symbol": "RELA", "log2": -0.555163, "pvalue": 0.0264}], "log2": -0.8369015, "pvalue": 0.00784, "abs": 0.8369015, "cx": 973.0, "cy": 1425.5, "w": 46.0, "h": 17.0}, {"id": "4BE1FE4B", "symbols": ["IFIH1"], "entries": [{"symbol": "IFIH1", "log2": 0.00325345, "pvalue": 0.988}], "log2": 0.00325345, "pvalue": 0.988, "abs": 0.00325345, "cx": 599.0, "cy": 1598.5, "w": 46.0, "h": 17.0}, {"id": "DA1BBB6D", "symbols": ["MAVS"], "entries": [{"symbol": "MAVS", "log2": 0.132068, "pvalue": 0.489}], "log2": 0.132068, "pvalue": 0.489, "abs": 0.132068, "cx": 675.0, "cy": 1580.5, "w": 46.0, "h": 17.0}, {"id": "2AACD2E0", "symbols": ["IRF3"], "entries": [{"symbol": "IRF3", "log2": 0.13641, "pvalue": 0.253}], "log2": 0.13641, "pvalue": 0.253, "abs": 0.13641, "cx": 972.0, "cy": 1580.5, "w": 46.0, "h": 17.0}, {"id": "74DE6012", "symbols": ["IFNAR1", "IFNAR2"], "entries": [{"symbol": "IFNAR1", "log2": -0.268207, "pvalue": 0.0613}, {"symbol": "IFNAR2", "log2": 0.0751879, "pvalue": 0.557}], "log2": -0.09650954999999999, "pvalue": 0.0613, "abs": 0.09650954999999999, "cx": 411.0, "cy": 1862.5, "w": 46.0, "h": 17.0}, {"id": "E0F29C35", "symbols": ["JAK1", "TYK2"], "entries": [{"symbol": "JAK1", "log2": 0.192438, "pvalue": 0.024774}, {"symbol": "TYK2", "log2": 0.196475, "pvalue": 0.209}], "log2": 0.1944565, "pvalue": 0.024774, "abs": 0.1944565, "cx": 507.0, "cy": 1862.5, "w": 46.0, "h": 17.0}, {"id": "CF361C6E", "symbols": ["STAT1"], "entries": [{"symbol": "STAT1", "log2": -0.089994, "pvalue": 0.461676}], "log2": -0.089994, "pvalue": 0.461676, "abs": 0.089994, "cx": 718.0, "cy": 1848.5, "w": 46.0, "h": 17.0}, {"id": "2A184B57", "symbols": ["IRF9"], "entries": [{"symbol": "IRF9", "log2": 0.264589, "pvalue": 0.0578}], "log2": 0.264589, "pvalue": 0.0578, "abs": 0.264589, "cx": 964.0, "cy": 1863.5, "w": 46.0, "h": 17.0}, {"id": "C7DE6674", "symbols": ["TRAF6"], "entries": [{"symbol": "TRAF6", "log2": -0.366211, "pvalue": 0.127}], "log2": -0.366211, "pvalue": 0.127, "abs": 0.366211, "cx": 721.0, "cy": 1366.5, "w": 46.0, "h": 17.0}, {"id": "33D4EB41", "symbols": ["ADAR"], "entries": [{"symbol": "ADAR", "log2": 0.0166097, "pvalue": 0.934}], "log2": 0.0166097, "pvalue": 0.934, "abs": 0.0166097, "cx": 1218.0, "cy": 1852.5, "w": 46.0, "h": 17.0}, {"id": "33E9B619", "symbols": ["MAP3K7"], "entries": [{"symbol": "MAP3K7", "log2": 0.0691943, "pvalue": 0.684}], "log2": 0.0691943, "pvalue": 0.684, "abs": 0.0691943, "cx": 816.0, "cy": 1357.5, "w": 46.0, "h": 17.0}, {"id": "B995FD2F", "symbols": ["IKBKE"], "entries": [{"symbol": "IKBKE", "log2": 0.213176, "pvalue": 0.136}], "log2": 0.213176, "pvalue": 0.136, "abs": 0.213176, "cx": 869.0, "cy": 1573.5, "w": 46.0, "h": 17.0}, {"id": "B997FCB8", "symbols": ["TBK1"], "entries": [{"symbol": "TBK1", "log2": -0.0311829, "pvalue": 0.904}], "log2": -0.0311829, "pvalue": 0.904, "abs": 0.0311829, "cx": 869.0, "cy": 1590.5, "w": 46.0, "h": 17.0}, {"id": "27B5504B", "symbols": ["FOS", "JUN"], "entries": [{"symbol": "FOS", "log2": 0.249707, "pvalue": 0.602292}, {"symbol": "JUN", "log2": 0.771353, "pvalue": 0.03715}], "log2": 0.5105299999999999, "pvalue": 0.03715, "abs": 0.5105299999999999, "cx": 973.0, "cy": 1347.5, "w": 46.0, "h": 17.0}, {"id": "1DBE713A", "symbols": ["EIF2AK2"], "entries": [{"symbol": "EIF2AK2", "log2": -0.384219, "pvalue": 0.0994}], "log2": -0.384219, "pvalue": 0.0994, "abs": 0.384219, "cx": 1270.0, "cy": 1875.5, "w": 46.0, "h": 17.0}, {"id": "43AABB95", "symbols": ["TRAF3"], "entries": [{"symbol": "TRAF3", "log2": -0.688677, "pvalue": 0.00911}], "log2": -0.688677, "pvalue": 0.00911, "abs": 0.688677, "cx": 765.0, "cy": 1580.5, "w": 46.0, "h": 17.0}, {"id": "9AFFDD54", "symbols": ["IKBKB", "IKBKG"], "entries": [{"symbol": "IKBKB", "log2": 0.146299, "pvalue": 0.354}, {"symbol": "IKBKG", "log2": 0.144239, "pvalue": 0.125}], "log2": 0.145269, "pvalue": 0.125, "abs": 0.145269, "cx": 901.0, "cy": 1389.5, "w": 46.0, "h": 17.0}, {"id": "C7BD2CBD", "symbols": ["NFKB1", "RELA"], "entries": [{"symbol": "NFKB1", "log2": -1.11864, "pvalue": 0.00784}, {"symbol": "RELA", "log2": -0.555163, "pvalue": 0.0264}], "log2": -0.8369015, "pvalue": 0.00784, "abs": 0.8369015, "cx": 862.0, "cy": 703.5, "w": 46.0, "h": 17.0}, {"id": "08DA678A", "symbols": ["IL1B"], "entries": [{"symbol": "IL1B", "log2": -2.94623, "pvalue": 7.38e-05}], "log2": -2.94623, "pvalue": 7.38e-05, "abs": 2.94623, "cx": 1218.0, "cy": 685.5, "w": 46.0, "h": 17.0}, {"id": "0B5545EF", "symbols": ["IL6"], "entries": [{"symbol": "IL6", "log2": -1.1835, "pvalue": 0.128}], "log2": -1.1835, "pvalue": 0.128, "abs": 1.1835, "cx": 1270.0, "cy": 664.5, "w": 46.0, "h": 17.0}, {"id": "08D76C0D", "symbols": ["TNF"], "entries": [{"symbol": "TNF", "log2": -1.28951, "pvalue": 0.00974}], "log2": -1.28951, "pvalue": 0.00974, "abs": 1.28951, "cx": 1218.0, "cy": 664.5, "w": 46.0, "h": 17.0}, {"id": "0B58416C", "symbols": ["IL12A"], "entries": [{"symbol": "IL12A", "log2": 0.357384, "pvalue": 0.071253}], "log2": 0.357384, "pvalue": 0.071253, "abs": 0.357384, "cx": 1270.0, "cy": 685.5, "w": 46.0, "h": 17.0}, {"id": "0A4EF919", "symbols": ["CCL2"], "entries": [{"symbol": "CCL2", "log2": -1.75338, "pvalue": 0.00878}], "log2": -1.75338, "pvalue": 0.00878, "abs": 1.75338, "cx": 1218.0, "cy": 730.5, "w": 46.0, "h": 17.0}, {"id": "CF3A9074", "symbols": ["STAT2"], "entries": [{"symbol": "STAT2", "log2": 0.180063, "pvalue": 0.569}], "log2": 0.180063, "pvalue": 0.569, "abs": 0.180063, "cx": 718.0, "cy": 1876.5, "w": 46.0, "h": 17.0}, {"id": "A8B8052B", "symbols": ["HBEGF"], "entries": [{"symbol": "HBEGF", "log2": -1.1161, "pvalue": 0.0625}], "log2": -1.1161, "pvalue": 0.0625, "abs": 1.1161, "cx": 375.0, "cy": 817.5, "w": 46.0, "h": 17.0}, {"id": "5298356B", "symbols": ["TNF"], "entries": [{"symbol": "TNF", "log2": -1.28951, "pvalue": 0.00974}], "log2": -1.28951, "pvalue": 0.00974, "abs": 1.28951, "cx": 217.0, "cy": 844.5, "w": 46.0, "h": 17.0}, {"id": "078B768E", "symbols": ["IL6R"], "entries": [{"symbol": "IL6R", "log2": -0.539295, "pvalue": 0.00136}], "log2": -0.539295, "pvalue": 0.00136, "abs": 0.539295, "cx": 288.0, "cy": 896.5, "w": 46.0, "h": 17.0}, {"id": "DCB088D5", "symbols": ["HBEGF"], "entries": [{"symbol": "HBEGF", "log2": -1.1161, "pvalue": 0.0625}], "log2": -1.1161, "pvalue": 0.0625, "abs": 1.1161, "cx": 253.0, "cy": 870.5, "w": 46.0, "h": 17.0}, {"id": "ED9C79FF", "symbols": ["TNFRSF1A"], "entries": [{"symbol": "TNFRSF1A", "log2": -0.357582, "pvalue": 0.024645}], "log2": -0.357582, "pvalue": 0.024645, "abs": 0.357582, "cx": 411.0, "cy": 940.5, "w": 46.0, "h": 17.0}, {"id": "68F06D8F", "symbols": ["IL6ST"], "entries": [{"symbol": "IL6ST", "log2": -0.667171, "pvalue": 0.00641}], "log2": -0.667171, "pvalue": 0.00641, "abs": 0.667171, "cx": 411.0, "cy": 1023.5, "w": 46.0, "h": 17.0}, {"id": "7F77FC44", "symbols": ["IL6"], "entries": [{"symbol": "IL6", "log2": -1.1835, "pvalue": 0.128}], "log2": -1.1835, "pvalue": 0.128, "abs": 1.1835, "cx": 200.0, "cy": 1023.5, "w": 46.0, "h": 17.0}, {"id": "E8F81A67", "symbols": ["IL6R"], "entries": [{"symbol": "IL6R", "log2": -0.539295, "pvalue": 0.00136}], "log2": -0.539295, "pvalue": 0.00136, "abs": 0.539295, "cx": 288.0, "cy": 1023.5, "w": 46.0, "h": 17.0}, {"id": "2FB7F774", "symbols": ["IL6"], "entries": [{"symbol": "IL6", "log2": -1.1835, "pvalue": 0.128}], "log2": -1.1835, "pvalue": 0.128, "abs": 1.1835, "cx": 1372.0, "cy": 1018.5, "w": 46.0, "h": 17.0}, {"id": "47A9C875", "symbols": ["NFKBIA", "NFKBIB"], "entries": [{"symbol": "NFKBIA", "log2": -1.37878, "pvalue": 0.00581}, {"symbol": "NFKBIB", "log2": -0.533817, "pvalue": 0.0496}], "log2": -0.9562984999999999, "pvalue": 0.00581, "abs": 0.9562984999999999, "cx": 721.0, "cy": 943.5, "w": 46.0, "h": 17.0}, {"id": "66ACCB64", "symbols": ["NFKB1", "RELA"], "entries": [{"symbol": "NFKB1", "log2": -1.11864, "pvalue": 0.00784}, {"symbol": "RELA", "log2": -0.555163, "pvalue": 0.0264}], "log2": -0.8369015, "pvalue": 0.00784, "abs": 0.8369015, "cx": 720.0, "cy": 979.5, "w": 46.0, "h": 17.0}, {"id": "C3616F7A", "symbols": ["STAT3"], "entries": [{"symbol": "STAT3", "log2": -0.248366, "pvalue": 0.124}], "log2": -0.248366, "pvalue": 0.124, "abs": 0.248366, "cx": 721.0, "cy": 1024.5, "w": 46.0, "h": 17.0}, {"id": "E1CFA999", "symbols": ["JAK1"], "entries": [{"symbol": "JAK1", "log2": 0.192438, "pvalue": 0.024774}], "log2": 0.192438, "pvalue": 0.024774, "abs": 0.192438, "cx": 457.0, "cy": 1023.5, "w": 46.0, "h": 17.0}, {"id": "41B00390", "symbols": ["IL1B"], "entries": [{"symbol": "IL1B", "log2": -2.94623, "pvalue": 7.38e-05}], "log2": -2.94623, "pvalue": 7.38e-05, "abs": 2.94623, "cx": 1425.0, "cy": 1018.5, "w": 46.0, "h": 17.0}, {"id": "459B1D90", "symbols": ["CCL2"], "entries": [{"symbol": "CCL2", "log2": -1.75338, "pvalue": 0.00878}], "log2": -1.75338, "pvalue": 0.00878, "abs": 1.75338, "cx": 1425.0, "cy": 1090.5, "w": 46.0, "h": 17.0}, {"id": "ADB5FF74", "symbols": ["TNF"], "entries": [{"symbol": "TNF", "log2": -1.28951, "pvalue": 0.00974}], "log2": -1.28951, "pvalue": 0.00974, "abs": 1.28951, "cx": 1372.0, "cy": 1114.5, "w": 46.0, "h": 17.0}, {"id": "33A31174", "symbols": ["CXCL10"], "entries": [{"symbol": "CXCL10", "log2": -0.225994, "pvalue": 0.665}], "log2": -0.225994, "pvalue": 0.665, "abs": 0.225994, "cx": 1372.0, "cy": 1090.5, "w": 46.0, "h": 17.0}, {"id": "E5F1E917", "symbols": ["C5AR1"], "entries": [{"symbol": "C5AR1", "log2": -1.39882, "pvalue": 0.0392}], "log2": -1.39882, "pvalue": 0.0392, "abs": 1.39882, "cx": 411.0, "cy": 2032.5, "w": 46.0, "h": 17.0}, {"id": "E5F4E90B", "symbols": ["C3AR1"], "entries": [{"symbol": "C3AR1", "log2": 0.239724, "pvalue": 0.289}], "log2": 0.239724, "pvalue": 0.289, "abs": 0.239724, "cx": 411.0, "cy": 2056.5, "w": 46.0, "h": 17.0}, {"id": "6BEC6E95", "symbols": ["FCGR2A"], "entries": [{"symbol": "FCGR2A", "log2": -0.0151196, "pvalue": 0.951}], "log2": -0.0151196, "pvalue": 0.951, "abs": 0.0151196, "cx": 411.0, "cy": 1241.5, "w": 46.0, "h": 17.0}, {"id": "CF97F9E3", "symbols": ["CYBB"], "entries": [{"symbol": "CYBB", "log2": -0.171447, "pvalue": 0.558}], "log2": -0.171447, "pvalue": 0.558, "abs": 0.171447, "cx": 606.0, "cy": 703.5, "w": 46.0, "h": 17.0}, {"id": "DCF9D23B", "symbols": ["SYK"], "entries": [{"symbol": "SYK", "log2": -0.10766, "pvalue": 0.512981}], "log2": -0.10766, "pvalue": 0.512981, "abs": 0.10766, "cx": 513.0, "cy": 1230.5, "w": 46.0, "h": 17.0}, {"id": "DCFDC535", "symbols": ["SYK"], "entries": [{"symbol": "SYK", "log2": -0.10766, "pvalue": 0.512981}], "log2": -0.10766, "pvalue": 0.512981, "abs": 0.10766, "cx": 513.0, "cy": 1252.5, "w": 46.0, "h": 17.0}, {"id": "50653D5D", "symbols": ["PLCG1", "PLCG2"], "entries": [{"symbol": "PLCG1", "log2": -0.0909072, "pvalue": 0.707}, {"symbol": "PLCG2", "log2": 0.457401, "pvalue": 0.037228}], "log2": 0.1832469, "pvalue": 0.037228, "abs": 0.1832469, "cx": 615.0, "cy": 1252.5, "w": 46.0, "h": 17.0}, {"id": "46A63A12", "symbols": ["PRKCA", "PRKCB"], "entries": [{"symbol": "PRKCA", "log2": -0.780629, "pvalue": 0.00427}, {"symbol": "PRKCB", "log2": 0.086208, "pvalue": 0.39169}], "log2": -0.3472105, "pvalue": 0.00427, "abs": 0.3472105, "cx": 776.0, "cy": 1241.5, "w": 46.0, "h": 17.0}, {"id": "4C677E51", "symbols": ["CGAS"], "entries": [{"symbol": "CGAS", "log2": 0.460767, "pvalue": 0.0584}], "log2": 0.460767, "pvalue": 0.0584, "abs": 0.460767, "cx": 599.0, "cy": 1686.5, "w": 46.0, "h": 17.0}, {"id": "33C8EF83", "symbols": ["STING1"], "entries": [{"symbol": "STING1", "log2": 0.217574, "pvalue": 0.224}], "log2": 0.217574, "pvalue": 0.224, "abs": 0.217574, "cx": 740.0, "cy": 1686.5, "w": 46.0, "h": 17.0}, {"id": "9FDD2BA6", "symbols": ["TBK1"], "entries": [{"symbol": "TBK1", "log2": -0.0311829, "pvalue": 0.904}], "log2": -0.0311829, "pvalue": 0.904, "abs": 0.0311829, "cx": 836.0, "cy": 1686.5, "w": 46.0, "h": 17.0}, {"id": "0D50689C", "symbols": ["IL6"], "entries": [{"symbol": "IL6", "log2": -1.1835, "pvalue": 0.128}], "log2": -1.1835, "pvalue": 0.128, "abs": 1.1835, "cx": 1218.0, "cy": 979.5, "w": 46.0, "h": 17.0}, {"id": "6A6EF200", "symbols": ["IL6ST"], "entries": [{"symbol": "IL6ST", "log2": -0.667171, "pvalue": 0.00641}], "log2": -0.667171, "pvalue": 0.00641, "abs": 0.667171, "cx": 411.0, "cy": 1138.5, "w": 46.0, "h": 17.0}, {"id": "B91372B2", "symbols": ["CASP1"], "entries": [{"symbol": "CASP1", "log2": 0.445725, "pvalue": 0.145}], "log2": 0.445725, "pvalue": 0.145, "abs": 0.445725, "cx": 869.0, "cy": 1502.5, "w": 46.0, "h": 17.0}, {"id": "1CC52757", "symbols": ["IL1B"], "entries": [{"symbol": "IL1B", "log2": -2.94623, "pvalue": 7.38e-05}], "log2": -2.94623, "pvalue": 7.38e-05, "abs": 2.94623, "cx": 956.0, "cy": 1483.5, "w": 46.0, "h": 17.0}, {"id": "1E393957", "symbols": ["IL1B"], "entries": [{"symbol": "IL1B", "log2": -2.94623, "pvalue": 7.38e-05}], "log2": -2.94623, "pvalue": 7.38e-05, "abs": 2.94623, "cx": 956.0, "cy": 1523.5, "w": 46.0, "h": 17.0}, {"id": "3BD76137", "symbols": ["NLRP3"], "entries": [{"symbol": "NLRP3", "log2": -0.863694, "pvalue": 0.0201}], "log2": -0.863694, "pvalue": 0.0201, "abs": 0.863694, "cx": 1218.0, "cy": 1457.5, "w": 46.0, "h": 17.0}, {"id": "3D759EE0", "symbols": ["ISG15"], "entries": [{"symbol": "ISG15", "log2": -0.488552, "pvalue": 0.111}], "log2": -0.488552, "pvalue": 0.111, "abs": 0.488552, "cx": 578.0, "cy": 1631.5, "w": 46.0, "h": 17.0}, {"id": "1FBC3051", "symbols": ["ISG15"], "entries": [{"symbol": "ISG15", "log2": -0.488552, "pvalue": 0.111}], "log2": -0.488552, "pvalue": 0.111, "abs": 0.488552, "cx": 957.0, "cy": 1615.5, "w": 46.0, "h": 17.0}, {"id": "435867A3", "symbols": ["IL6"], "entries": [{"symbol": "IL6", "log2": -1.1835, "pvalue": 0.128}], "log2": -1.1835, "pvalue": 0.128, "abs": 1.1835, "cx": 1218.0, "cy": 2045.5, "w": 46.0, "h": 17.0}, {"id": "BFAE0B90", "symbols": ["IL12A"], "entries": [{"symbol": "IL12A", "log2": 0.357384, "pvalue": 0.071253}], "log2": 0.357384, "pvalue": 0.071253, "abs": 0.357384, "cx": 1425.0, "cy": 1114.5, "w": 46.0, "h": 17.0}, {"id": "D418E90B", "symbols": ["C1QA", "C1QB", "C1R"], "entries": [{"symbol": "C1QA", "log2": 0.139435, "pvalue": 0.74}, {"symbol": "C1QB", "log2": 0.388996, "pvalue": 0.463}, {"symbol": "C1R", "log2": -0.352928, "pvalue": 0.254}], "log2": 0.058501, "pvalue": 0.254, "abs": 0.058501, "cx": 381.0, "cy": 2356.5, "w": 46.0, "h": 17.0}, {"id": "35638A7E", "symbols": ["C3"], "entries": [{"symbol": "C3", "log2": -0.392975, "pvalue": 0.348}], "log2": -0.392975, "pvalue": 0.348, "abs": 0.392975, "cx": 698.0, "cy": 2296.5, "w": 46.0, "h": 17.0}, {"id": "1EE36E46", "symbols": ["C5"], "entries": [{"symbol": "C5", "log2": 0.160513, "pvalue": 0.623}], "log2": 0.160513, "pvalue": 0.623, "abs": 0.160513, "cx": 910.0, "cy": 2297.5, "w": 46.0, "h": 17.0}, {"id": "D71EE14B", "symbols": ["C8G"], "entries": [{"symbol": "C8G", "log2": 0.361091, "pvalue": 0.171}], "log2": 0.361091, "pvalue": 0.171, "abs": 0.361091, "cx": 1113.0, "cy": 2272.5, "w": 46.0, "h": 17.0}, {"id": "DCDB6380", "symbols": ["C5AR1"], "entries": [{"symbol": "C5AR1", "log2": -1.39882, "pvalue": 0.0392}], "log2": -1.39882, "pvalue": 0.0392, "abs": 1.39882, "cx": 1188.0, "cy": 2237.5, "w": 46.0, "h": 17.0}, {"id": "5BD2FB85", "symbols": ["C3AR1"], "entries": [{"symbol": "C3AR1", "log2": 0.239724, "pvalue": 0.289}], "log2": 0.239724, "pvalue": 0.289, "abs": 0.239724, "cx": 1188.0, "cy": 2350.5, "w": 46.0, "h": 17.0}, {"id": "E13E7D80", "symbols": ["C5", "C8G"], "entries": [{"symbol": "C5", "log2": 0.160513, "pvalue": 0.623}, {"symbol": "C8G", "log2": 0.361091, "pvalue": 0.171}], "log2": 0.260802, "pvalue": 0.171, "abs": 0.260802, "cx": 1188.0, "cy": 2299.5, "w": 46.0, "h": 17.0}, {"id": "D9D6E585", "symbols": ["SELP"], "entries": [{"symbol": "SELP", "log2": 1.37716, "pvalue": 0.00113}], "log2": 1.37716, "pvalue": 0.00113, "abs": 1.37716, "cx": 1188.0, "cy": 2456.5, "w": 46.0, "h": 17.0}, {"id": "DB51E185", "symbols": ["VWF"], "entries": [{"symbol": "VWF", "log2": 1.67722, "pvalue": 0.0083}], "log2": 1.67722, "pvalue": 0.0083, "abs": 1.67722, "cx": 1188.0, "cy": 2488.5, "w": 46.0, "h": 17.0}, {"id": "E22C5A3D", "symbols": ["F13A1"], "entries": [{"symbol": "F13A1", "log2": 0.909101, "pvalue": 0.00712}], "log2": 0.909101, "pvalue": 0.00712, "abs": 0.909101, "cx": 572.0, "cy": 2456.5, "w": 46.0, "h": 17.0}, {"id": "5324E965", "symbols": ["F13A1"], "entries": [{"symbol": "F13A1", "log2": 0.909101, "pvalue": 0.00712}], "log2": 0.909101, "pvalue": 0.00712, "abs": 0.909101, "cx": 671.0, "cy": 2456.5, "w": 46.0, "h": 17.0}, {"id": "4B76AF97", "symbols": ["CFD"], "entries": [{"symbol": "CFD", "log2": -0.216652, "pvalue": 0.474}], "log2": -0.216652, "pvalue": 0.474, "abs": 0.216652, "cx": 426.0, "cy": 2277.5, "w": 46.0, "h": 17.0}, {"id": "C1686937", "symbols": ["C3"], "entries": [{"symbol": "C3", "log2": -0.392975, "pvalue": 0.348}], "log2": -0.392975, "pvalue": 0.348, "abs": 0.392975, "cx": 532.0, "cy": 2218.5, "w": 46.0, "h": 17.0}, {"id": "5B6002B0", "symbols": ["C2"], "entries": [{"symbol": "C2", "log2": 0.360294, "pvalue": 0.335}], "log2": 0.360294, "pvalue": 0.335, "abs": 0.360294, "cx": 509.0, "cy": 2377.5, "w": 46.0, "h": 17.0}, {"id": "E69A0F7C", "symbols": ["NRP1"], "entries": [{"symbol": "NRP1", "log2": 0.00498862, "pvalue": 0.989}], "log2": 0.00498862, "pvalue": 0.989, "abs": 0.00498862, "cx": 411.0, "cy": 250.5, "w": 46.0, "h": 17.0}];
+const OVERLAY_SHAPES = [{"id": "8FAC7FE1", "shape": "rect", "coords": [218.0, 679.0, 264.0, 696.0], "log2": 0.287258, "pvalue": 0.339}, {"id": "4F9E7AFE", "shape": "rect", "coords": [388.0, 756.0, 434.0, 773.0], "log2": 0.0861969, "pvalue": 0.67}, {"id": "2BB58713", "shape": "rect", "coords": [352.0, 784.0, 398.0, 801.0], "log2": -1.28951, "pvalue": 0.00974}, {"id": "12BA0AA2", "shape": "rect", "coords": [352.0, 833.0, 398.0, 850.0], "log2": -0.539295, "pvalue": 0.00136}, {"id": "6A6C7495", "shape": "rect", "coords": [388.0, 1113.0, 434.0, 1130.0], "log2": -0.539295, "pvalue": 0.00136}, {"id": "C4DEF086", "shape": "rect", "coords": [698.0, 1122.0, 744.0, 1139.0], "log2": -0.248366, "pvalue": 0.124}, {"id": "FBDCD8F0", "shape": "rect", "coords": [291.0, 1122.0, 337.0, 1139.0], "log2": -1.1835, "pvalue": 0.128}, {"id": "E34D2C22", "shape": "rect", "coords": [434.0, 1122.0, 480.0, 1139.0], "log2": 0.192438, "pvalue": 0.024774}, {"id": "3AD77737", "shape": "rect", "coords": [1195.0, 1423.0, 1241.0, 1440.0], "log2": -2.94623, "pvalue": 7.38e-05}, {"id": "AA2FEB2B", "shape": "rect", "coords": [1247.0, 1400.0, 1293.0, 1417.0], "log2": -1.1835, "pvalue": 0.128}, {"id": "C143DF32", "shape": "rect", "coords": [1195.0, 1400.0, 1241.0, 1417.0], "log2": -1.28951, "pvalue": 0.00974}, {"id": "23C38330", "shape": "rect", "coords": [1247.0, 1423.0, 1293.0, 1440.0], "log2": 0.357384, "pvalue": 0.071253}, {"id": "56475BC1", "shape": "rect", "coords": [528.0, 1475.0, 574.0, 1492.0], "log2": 0.10996, "pvalue": 0.828}, {"id": "563FF232", "shape": "rect", "coords": [528.0, 1430.0, 574.0, 1447.0], "log2": 0.031291999999999986, "pvalue": 0.114056}, {"id": "6D6D6606", "shape": "rect", "coords": [388.0, 1358.0, 434.0, 1375.0], "log2": -0.25178145, "pvalue": 0.0756}, {"id": "4AE77FDA", "shape": "rect", "coords": [576.0, 1555.0, 622.0, 1572.0], "log2": 0.0193085, "pvalue": 0.947}, {"id": "DE7C4829", "shape": "rect", "coords": [490.0, 1358.0, 536.0, 1375.0], "log2": 0.0767599, "pvalue": 0.705}, {"id": "51E3C051", "shape": "rect", "coords": [592.0, 1358.0, 638.0, 1375.0], "log2": -0.037786500000000015, "pvalue": 0.108592}, {"id": "27BBBF63", "shape": "rect", "coords": [950.0, 1381.0, 996.0, 1398.0], "log2": -0.9562984999999999, "pvalue": 0.00581}, {"id": "292F5351", "shape": "rect", "coords": [950.0, 1417.0, 996.0, 1434.0], "log2": -0.8369015, "pvalue": 0.00784}, {"id": "4BE1FE4B", "shape": "rect", "coords": [576.0, 1590.0, 622.0, 1607.0], "log2": 0.00325345, "pvalue": 0.988}, {"id": "DA1BBB6D", "shape": "rect", "coords": [652.0, 1572.0, 698.0, 1589.0], "log2": 0.132068, "pvalue": 0.489}, {"id": "2AACD2E0", "shape": "rect", "coords": [949.0, 1572.0, 995.0, 1589.0], "log2": 0.13641, "pvalue": 0.253}, {"id": "74DE6012", "shape": "rect", "coords": [388.0, 1854.0, 434.0, 1871.0], "log2": -0.09650954999999999, "pvalue": 0.0613}, {"id": "E0F29C35", "shape": "rect", "coords": [484.0, 1854.0, 530.0, 1871.0], "log2": 0.1944565, "pvalue": 0.024774}, {"id": "CF361C6E", "shape": "rect", "coords": [695.0, 1840.0, 741.0, 1857.0], "log2": -0.089994, "pvalue": 0.461676}, {"id": "2A184B57", "shape": "rect", "coords": [941.0, 1855.0, 987.0, 1872.0], "log2": 0.264589, "pvalue": 0.0578}, {"id": "C7DE6674", "shape": "rect", "coords": [698.0, 1358.0, 744.0, 1375.0], "log2": -0.366211, "pvalue": 0.127}, {"id": "33D4EB41", "shape": "rect", "coords": [1195.0, 1844.0, 1241.0, 1861.0], "log2": 0.0166097, "pvalue": 0.934}, {"id": "33E9B619", "shape": "rect", "coords": [793.0, 1349.0, 839.0, 1366.0], "log2": 0.0691943, "pvalue": 0.684}, {"id": "B995FD2F", "shape": "rect", "coords": [846.0, 1565.0, 892.0, 1582.0], "log2": 0.213176, "pvalue": 0.136}, {"id": "B997FCB8", "shape": "rect", "coords": [846.0, 1582.0, 892.0, 1599.0], "log2": -0.0311829, "pvalue": 0.904}, {"id": "27B5504B", "shape": "rect", "coords": [950.0, 1339.0, 996.0, 1356.0], "log2": 0.5105299999999999, "pvalue": 0.03715}, {"id": "1DBE713A", "shape": "rect", "coords": [1247.0, 1867.0, 1293.0, 1884.0], "log2": -0.384219, "pvalue": 0.0994}, {"id": "43AABB95", "shape": "rect", "coords": [742.0, 1572.0, 788.0, 1589.0], "log2": -0.688677, "pvalue": 0.00911}, {"id": "9AFFDD54", "shape": "rect", "coords": [878.0, 1381.0, 924.0, 1398.0], "log2": 0.145269, "pvalue": 0.125}, {"id": "C7BD2CBD", "shape": "rect", "coords": [839.0, 695.0, 885.0, 712.0], "log2": -0.8369015, "pvalue": 0.00784}, {"id": "08DA678A", "shape": "rect", "coords": [1195.0, 677.0, 1241.0, 694.0], "log2": -2.94623, "pvalue": 7.38e-05}, {"id": "0B5545EF", "shape": "rect", "coords": [1247.0, 656.0, 1293.0, 673.0], "log2": -1.1835, "pvalue": 0.128}, {"id": "08D76C0D", "shape": "rect", "coords": [1195.0, 656.0, 1241.0, 673.0], "log2": -1.28951, "pvalue": 0.00974}, {"id": "0B58416C", "shape": "rect", "coords": [1247.0, 677.0, 1293.0, 694.0], "log2": 0.357384, "pvalue": 0.071253}, {"id": "0A4EF919", "shape": "rect", "coords": [1195.0, 722.0, 1241.0, 739.0], "log2": -1.75338, "pvalue": 0.00878}, {"id": "CF3A9074", "shape": "rect", "coords": [695.0, 1868.0, 741.0, 1885.0], "log2": 0.180063, "pvalue": 0.569}, {"id": "A8B8052B", "shape": "rect", "coords": [352.0, 809.0, 398.0, 826.0], "log2": -1.1161, "pvalue": 0.0625}, {"id": "5298356B", "shape": "rect", "coords": [194.0, 836.0, 240.0, 853.0], "log2": -1.28951, "pvalue": 0.00974}, {"id": "078B768E", "shape": "rect", "coords": [265.0, 888.0, 311.0, 905.0], "log2": -0.539295, "pvalue": 0.00136}, {"id": "DCB088D5", "shape": "rect", "coords": [230.0, 862.0, 276.0, 879.0], "log2": -1.1161, "pvalue": 0.0625}, {"id": "ED9C79FF", "shape": "rect", "coords": [388.0, 932.0, 434.0, 949.0], "log2": -0.357582, "pvalue": 0.024645}, {"id": "68F06D8F", "shape": "rect", "coords": [388.0, 1015.0, 434.0, 1032.0], "log2": -0.667171, "pvalue": 0.00641}, {"id": "7F77FC44", "shape": "rect", "coords": [177.0, 1015.0, 223.0, 1032.0], "log2": -1.1835, "pvalue": 0.128}, {"id": "E8F81A67", "shape": "rect", "coords": [265.0, 1015.0, 311.0, 1032.0], "log2": -0.539295, "pvalue": 0.00136}, {"id": "2FB7F774", "shape": "rect", "coords": [1349.0, 1010.0, 1395.0, 1027.0], "log2": -1.1835, "pvalue": 0.128}, {"id": "47A9C875", "shape": "rect", "coords": [698.0, 935.0, 744.0, 952.0], "log2": -0.9562984999999999, "pvalue": 0.00581}, {"id": "66ACCB64", "shape": "rect", "coords": [697.0, 971.0, 743.0, 988.0], "log2": -0.8369015, "pvalue": 0.00784}, {"id": "C3616F7A", "shape": "rect", "coords": [698.0, 1016.0, 744.0, 1033.0], "log2": -0.248366, "pvalue": 0.124}, {"id": "E1CFA999", "shape": "rect", "coords": [434.0, 1015.0, 480.0, 1032.0], "log2": 0.192438, "pvalue": 0.024774}, {"id": "41B00390", "shape": "rect", "coords": [1402.0, 1010.0, 1448.0, 1027.0], "log2": -2.94623, "pvalue": 7.38e-05}, {"id": "459B1D90", "shape": "rect", "coords": [1402.0, 1082.0, 1448.0, 1099.0], "log2": -1.75338, "pvalue": 0.00878}, {"id": "ADB5FF74", "shape": "rect", "coords": [1349.0, 1106.0, 1395.0, 1123.0], "log2": -1.28951, "pvalue": 0.00974}, {"id": "33A31174", "shape": "rect", "coords": [1349.0, 1082.0, 1395.0, 1099.0], "log2": -0.225994, "pvalue": 0.665}, {"id": "E5F1E917", "shape": "rect", "coords": [388.0, 2024.0, 434.0, 2041.0], "log2": -1.39882, "pvalue": 0.0392}, {"id": "E5F4E90B", "shape": "rect", "coords": [388.0, 2048.0, 434.0, 2065.0], "log2": 0.239724, "pvalue": 0.289}, {"id": "6BEC6E95", "shape": "rect", "coords": [388.0, 1233.0, 434.0, 1250.0], "log2": -0.0151196, "pvalue": 0.951}, {"id": "CF97F9E3", "shape": "rect", "coords": [583.0, 695.0, 629.0, 712.0], "log2": -0.171447, "pvalue": 0.558}, {"id": "DCF9D23B", "shape": "rect", "coords": [490.0, 1222.0, 536.0, 1239.0], "log2": -0.10766, "pvalue": 0.512981}, {"id": "DCFDC535", "shape": "rect", "coords": [490.0, 1244.0, 536.0, 1261.0], "log2": -0.10766, "pvalue": 0.512981}, {"id": "50653D5D", "shape": "rect", "coords": [592.0, 1244.0, 638.0, 1261.0], "log2": 0.1832469, "pvalue": 0.037228}, {"id": "46A63A12", "shape": "rect", "coords": [753.0, 1233.0, 799.0, 1250.0], "log2": -0.3472105, "pvalue": 0.00427}, {"id": "4C677E51", "shape": "rect", "coords": [576.0, 1678.0, 622.0, 1695.0], "log2": 0.460767, "pvalue": 0.0584}, {"id": "33C8EF83", "shape": "rect", "coords": [717.0, 1678.0, 763.0, 1695.0], "log2": 0.217574, "pvalue": 0.224}, {"id": "9FDD2BA6", "shape": "rect", "coords": [813.0, 1678.0, 859.0, 1695.0], "log2": -0.0311829, "pvalue": 0.904}, {"id": "0D50689C", "shape": "rect", "coords": [1195.0, 971.0, 1241.0, 988.0], "log2": -1.1835, "pvalue": 0.128}, {"id": "6A6EF200", "shape": "rect", "coords": [388.0, 1130.0, 434.0, 1147.0], "log2": -0.667171, "pvalue": 0.00641}, {"id": "B91372B2", "shape": "rect", "coords": [846.0, 1494.0, 892.0, 1511.0], "log2": 0.445725, "pvalue": 0.145}, {"id": "1CC52757", "shape": "rect", "coords": [933.0, 1475.0, 979.0, 1492.0], "log2": -2.94623, "pvalue": 7.38e-05}, {"id": "1E393957", "shape": "rect", "coords": [933.0, 1515.0, 979.0, 1532.0], "log2": -2.94623, "pvalue": 7.38e-05}, {"id": "3BD76137", "shape": "rect", "coords": [1195.0, 1449.0, 1241.0, 1466.0], "log2": -0.863694, "pvalue": 0.0201}, {"id": "3D759EE0", "shape": "rect", "coords": [555.0, 1623.0, 601.0, 1640.0], "log2": -0.488552, "pvalue": 0.111}, {"id": "1FBC3051", "shape": "rect", "coords": [934.0, 1607.0, 980.0, 1624.0], "log2": -0.488552, "pvalue": 0.111}, {"id": "435867A3", "shape": "rect", "coords": [1195.0, 2037.0, 1241.0, 2054.0], "log2": -1.1835, "pvalue": 0.128}, {"id": "BFAE0B90", "shape": "rect", "coords": [1402.0, 1106.0, 1448.0, 1123.0], "log2": 0.357384, "pvalue": 0.071253}, {"id": "D418E90B", "shape": "rect", "coords": [358.0, 2348.0, 404.0, 2365.0], "log2": 0.058501, "pvalue": 0.254}, {"id": "35638A7E", "shape": "rect", "coords": [675.0, 2288.0, 721.0, 2305.0], "log2": -0.392975, "pvalue": 0.348}, {"id": "1EE36E46", "shape": "rect", "coords": [887.0, 2289.0, 933.0, 2306.0], "log2": 0.160513, "pvalue": 0.623}, {"id": "D71EE14B", "shape": "rect", "coords": [1090.0, 2264.0, 1136.0, 2281.0], "log2": 0.361091, "pvalue": 0.171}, {"id": "DCDB6380", "shape": "rect", "coords": [1165.0, 2229.0, 1211.0, 2246.0], "log2": -1.39882, "pvalue": 0.0392}, {"id": "5BD2FB85", "shape": "rect", "coords": [1165.0, 2342.0, 1211.0, 2359.0], "log2": 0.239724, "pvalue": 0.289}, {"id": "E13E7D80", "shape": "rect", "coords": [1165.0, 2291.0, 1211.0, 2308.0], "log2": 0.260802, "pvalue": 0.171}, {"id": "D9D6E585", "shape": "rect", "coords": [1165.0, 2448.0, 1211.0, 2465.0], "log2": 1.37716, "pvalue": 0.00113}, {"id": "DB51E185", "shape": "rect", "coords": [1165.0, 2480.0, 1211.0, 2497.0], "log2": 1.67722, "pvalue": 0.0083}, {"id": "E22C5A3D", "shape": "rect", "coords": [549.0, 2448.0, 595.0, 2465.0], "log2": 0.909101, "pvalue": 0.00712}, {"id": "5324E965", "shape": "rect", "coords": [648.0, 2448.0, 694.0, 2465.0], "log2": 0.909101, "pvalue": 0.00712}, {"id": "4B76AF97", "shape": "rect", "coords": [403.0, 2269.0, 449.0, 2286.0], "log2": -0.216652, "pvalue": 0.474}, {"id": "C1686937", "shape": "rect", "coords": [509.0, 2210.0, 555.0, 2227.0], "log2": -0.392975, "pvalue": 0.348}, {"id": "5B6002B0", "shape": "rect", "coords": [486.0, 2369.0, 532.0, 2386.0], "log2": 0.360294, "pvalue": 0.335}, {"id": "E69A0F7C", "shape": "rect", "coords": [388.0, 242.0, 434.0, 259.0], "log2": 0.00498862, "pvalue": 0.989}];
+const MAP_W = 1769.0;
+const MAP_H = 2638.0;
+const ABS_MAX = 2.94623;
+const LOG2_MIN = -2.94623;
+const LOG2_MAX = 1.67722;
+const PVALUE_DATA_MIN = 7.38e-05;
+const PVALUE_DATA_MAX = 0.989;
+const PVALUE_PAD = 0.01e-5;
+const PVALUE_FILTER_MIN = Math.max(0, PVALUE_DATA_MIN - PVALUE_PAD);
+const PVALUE_FILTER_MAX = PVALUE_DATA_MAX + PVALUE_PAD;
+const IMG = 'map05171@2x_20260606_220006.png';
+
+const PLANE_W = 40;
+const PLANE_H = PLANE_W * (MAP_H / MAP_W);
+const BAR_HEIGHT_SCALE = 6 / (ABS_MAX || 1);
+const MIN_BAR = 0.08;
+
+const host = document.getElementById('canvas-host');
+const tooltip = document.getElementById('tooltip');
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x1a1f2e);
+scene.fog = new THREE.Fog(0x1a1f2e, 80, 140);
+
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 500);
+const ISO_DIST = 55;
+camera.position.set(ISO_DIST, ISO_DIST * 0.82, ISO_DIST);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+host.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.target.set(0, 0, 0);
+controls.minDistance = 20;
+controls.maxDistance = 120;
+controls.maxPolarAngle = Math.PI / 2.2;
+controls.minPolarAngle = 0.35;
+controls.update();
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+const sun = new THREE.DirectionalLight(0xffffff, 0.85);
+sun.position.set(30, 50, 20);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024);
+scene.add(sun);
+const fill = new THREE.DirectionalLight(0xaaccff, 0.35);
+fill.position.set(-20, 15, -25);
+scene.add(fill);
+
+const isoGroup = new THREE.Group();
+isoGroup.rotation.x = -Math.PI / 2;
+scene.add(isoGroup);
+
+const barsGroup = new THREE.Group();
+isoGroup.add(barsGroup);
+
+const textureLoader = new THREE.TextureLoader();
+textureLoader.load(IMG, function (texture) {
+	texture.colorSpace = THREE.SRGBColorSpace;
+	texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+
+	const planeGeo = new THREE.PlaneGeometry(PLANE_W, PLANE_H);
+	const planeMat = new THREE.MeshStandardMaterial({
+		map: texture,
+		roughness: 0.92,
+		metalness: 0.02,
+	});
+	const plane = new THREE.Mesh(planeGeo, planeMat);
+	plane.receiveShadow = true;
+	isoGroup.add(plane);
+
+	const edgeGeo = new THREE.EdgesGeometry(planeGeo);
+	const edge = new THREE.LineSegments(
+		edgeGeo,
+		new THREE.LineBasicMaterial({ color: 0x334455, transparent: true, opacity: 0.5 })
+	);
+	isoGroup.add(edge);
+
+	buildBars();
+	initPvalueFilter();
+});
+
+initExportButtons();
+
+const pvalueMinInput = document.getElementById('pvalue-min');
+const pvalueMaxInput = document.getElementById('pvalue-max');
+const pvalueMinLabel = document.getElementById('pvalue-min-label');
+const pvalueMaxLabel = document.getElementById('pvalue-max-label');
+const pvalueCount = document.getElementById('pvalue-count');
+const pvalueReset = document.getElementById('pvalue-reset');
+const PVALUE_SLIDER_STEPS = 1000;
+
+function sliderToPvalue(step) {
+	const lo = Math.log10(PVALUE_FILTER_MIN || 1e-12);
+	const hi = Math.log10(PVALUE_FILTER_MAX || 1);
+	const t = step / PVALUE_SLIDER_STEPS;
+	return Math.pow(10, lo + t * (hi - lo));
+}
+
+function initPvalueFilter() {
+	pvalueMinInput.min = '0';
+	pvalueMinInput.max = String(PVALUE_SLIDER_STEPS);
+	pvalueMinInput.value = '0';
+	pvalueMaxInput.min = '0';
+	pvalueMaxInput.max = String(PVALUE_SLIDER_STEPS);
+	pvalueMaxInput.value = String(PVALUE_SLIDER_STEPS);
+	updatePvalueLabels();
+	applyPvalueFilter();
+
+	pvalueMinInput.addEventListener('input', function () {
+		if (Number(pvalueMinInput.value) > Number(pvalueMaxInput.value)) {
+			pvalueMinInput.value = pvalueMaxInput.value;
+		}
+		updatePvalueLabels();
+		applyPvalueFilter();
+	});
+	pvalueMaxInput.addEventListener('input', function () {
+		if (Number(pvalueMaxInput.value) < Number(pvalueMinInput.value)) {
+			pvalueMaxInput.value = pvalueMinInput.value;
+		}
+		updatePvalueLabels();
+		applyPvalueFilter();
+	});
+	pvalueReset.addEventListener('click', function () {
+		pvalueMinInput.value = '0';
+		pvalueMaxInput.value = String(PVALUE_SLIDER_STEPS);
+		updatePvalueLabels();
+		applyPvalueFilter();
+	});
+}
+
+function updatePvalueLabels() {
+	pvalueMinLabel.textContent = formatPvalue(sliderToPvalue(Number(pvalueMinInput.value)));
+	pvalueMaxLabel.textContent = formatPvalue(sliderToPvalue(Number(pvalueMaxInput.value)));
+}
+
+function applyPvalueFilter() {
+	const minP = sliderToPvalue(Number(pvalueMinInput.value));
+	const maxP = sliderToPvalue(Number(pvalueMaxInput.value));
+	let visible = 0;
+	barMeshes.forEach(function (mesh) {
+		const p = mesh.userData.pvalue;
+		const show = p >= minP && p <= maxP;
+		mesh.visible = show;
+		if (show) visible++;
+	});
+	pvalueCount.textContent = visible + ' / ' + barMeshes.length + ' bars visible';
+}
+
+function getActivePvalueRange() {
+	return {
+		min: sliderToPvalue(Number(pvalueMinInput.value)),
+		max: sliderToPvalue(Number(pvalueMaxInput.value)),
+	};
+}
+
+function downloadBlob(blob, fileName) {
+	const url = URL.createObjectURL(blob);
+	const link = document.createElement('a');
+	link.href = url;
+	link.download = fileName;
+	link.click();
+	URL.revokeObjectURL(url);
+}
+
+function colorForLog2Overlay(value) {
+	if (LOG2_MAX === LOG2_MIN) {
+		return 'rgba(200,200,200,0.62)';
+	}
+	const t = (value - LOG2_MIN) / (LOG2_MAX - LOG2_MIN);
+	const r = Math.round(33 + t * (178 - 33));
+	const g = Math.round(102 + t * (24 - 102));
+	const b = Math.round(172 + t * (43 - 172));
+	return 'rgba(' + r + ',' + g + ',' + b + ',0.62)';
+}
+
+function overlayShapeMarkup(shape) {
+	const color = colorForLog2Overlay(shape.log2);
+	if (shape.shape === 'rect' && shape.coords.length >= 4) {
+		const x = Math.min(shape.coords[0], shape.coords[2]);
+		const y = Math.min(shape.coords[1], shape.coords[3]);
+		const w = Math.abs(shape.coords[2] - shape.coords[0]);
+		const h = Math.abs(shape.coords[3] - shape.coords[1]);
+		return (
+			'<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h +
+			'" fill="' + color + '" stroke="none" />'
+		);
+	}
+	if (shape.shape === 'circle' && shape.coords.length >= 3) {
+		return (
+			'<circle cx="' + shape.coords[0] + '" cy="' + shape.coords[1] +
+			'" r="' + shape.coords[2] + '" fill="' + color + '" stroke="none" />'
+		);
+	}
+	return '';
+}
+
+function readImageAsDataUrl(url) {
+	return fetch(url)
+		.then(function (response) { return response.blob(); })
+		.then(function (blob) {
+			return new Promise(function (resolve, reject) {
+				const reader = new FileReader();
+				reader.onload = function () { resolve(reader.result); };
+				reader.onerror = reject;
+				reader.readAsDataURL(blob);
+			});
+		});
+}
+
+function exportIsometricPng() {
+	renderer.render(scene, camera);
+	downloadBlob(
+		dataUrlToBlob(renderer.domElement.toDataURL('image/png')),
+		'map05171-isometric-log2fc.png'
+	);
+}
+
+function dataUrlToBlob(dataUrl) {
+	const parts = dataUrl.split(',');
+	const mime = parts[0].match(/:(.*?);/)[1];
+	const binary = atob(parts[1]);
+	const bytes = new Uint8Array(binary.length);
+	for (let i = 0; i < binary.length; i++) {
+		bytes[i] = binary.charCodeAt(i);
+	}
+	return new Blob([bytes], { type: mime });
+}
+
+async function exportPathwaySvg() {
+	const range = getActivePvalueRange();
+	const imageDataUrl = await readImageAsDataUrl(IMG);
+	const overlayParts = OVERLAY_SHAPES
+		.filter(function (shape) {
+			return shape.pvalue >= range.min && shape.pvalue <= range.max;
+		})
+		.map(overlayShapeMarkup)
+		.filter(Boolean);
+
+	const svg =
+		'<?xml version="1.0" encoding="UTF-8"?>' +
+		'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" ' +
+		'width="' + MAP_W + '" height="' + MAP_H + '" viewBox="0 0 ' + MAP_W + ' ' + MAP_H + '">' +
+		'<image href="' + imageDataUrl + '" x="0" y="0" width="' + MAP_W + '" height="' + MAP_H + '" />' +
+		overlayParts.join('') +
+		'</svg>';
+
+	downloadBlob(
+		new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }),
+		'map05171-log2fc-pathway.svg'
+	);
+}
+
+function initExportButtons() {
+	document.getElementById('export-png').addEventListener('click', exportIsometricPng);
+	document.getElementById('export-svg').addEventListener('click', function () {
+		exportPathwaySvg().catch(function (err) {
+			console.error(err);
+			alert('Could not export SVG. Please try again.');
+		});
+	});
+}
+
+function mapX(cx) {
+	return (cx / MAP_W - 0.5) * PLANE_W;
+}
+function mapY(cy) {
+	return (0.5 - cy / MAP_H) * PLANE_H;
+}
+
+function formatPvalue(value) {
+	if (value < 0.001) return value.toExponential(2);
+	return value.toFixed(4);
+}
+
+function formatTooltip(area) {
+	if (area.entries.length === 1) {
+		var e = area.entries[0];
+		return (
+			'<strong>' + e.symbol + '</strong><br>' +
+			'log2FC: ' + e.log2.toFixed(3) + '<br>' +
+			'|log2FC|: ' + Math.abs(e.log2).toFixed(3) + '<br>' +
+			'p-value: ' + formatPvalue(e.pvalue)
+		);
+	}
+	return area.entries.map(function (e) {
+		return '<strong>' + e.symbol + '</strong>: log2 ' + e.log2.toFixed(3) + ', p ' + formatPvalue(e.pvalue);
+	}).join('<br>');
+}
+
+function colorForLog2(value) {
+	return value >= 0 ? 0xb2182b : 0x2166ac;
+}
+
+const barMeshes = [];
+
+function buildBars() {
+	const sorted = AREAS.slice().sort(function (a, b) { return a.abs - b.abs; });
+
+	sorted.forEach(function (area) {
+		const barW = Math.max(0.15, Math.min(0.55, (area.w / MAP_W) * PLANE_W * 0.85));
+		const barD = Math.max(0.15, Math.min(0.55, (area.h / MAP_H) * PLANE_H * 0.85));
+		const height = Math.max(MIN_BAR, area.abs * BAR_HEIGHT_SCALE);
+
+		const geo = new THREE.BoxGeometry(barW, barD, height);
+		geo.translate(0, 0, height / 2);
+
+		const mat = new THREE.MeshStandardMaterial({
+			color: colorForLog2(area.log2),
+			roughness: 0.45,
+			metalness: 0.08,
+		});
+		const mesh = new THREE.Mesh(geo, mat);
+		mesh.position.set(mapX(area.cx), mapY(area.cy), 0.01);
+		mesh.castShadow = true;
+		mesh.receiveShadow = true;
+		mesh.userData = area;
+		barsGroup.add(mesh);
+		barMeshes.push(mesh);
+	});
+}
+
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+
+function onPointerMove(event) {
+	pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+	pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+	raycaster.setFromCamera(pointer, camera);
+	const hits = raycaster.intersectObjects(barMeshes, true).filter(function (h) {
+		return h.object.visible;
+	});
+	if (hits.length) {
+		const a = hits[0].object.userData;
+		tooltip.style.display = 'block';
+		tooltip.style.left = (event.clientX + 12) + 'px';
+		tooltip.style.top = (event.clientY + 12) + 'px';
+		tooltip.innerHTML = formatTooltip(a);
+		renderer.domElement.style.cursor = 'pointer';
+	} else {
+		tooltip.style.display = 'none';
+		renderer.domElement.style.cursor = 'grab';
+	}
+}
+
+renderer.domElement.addEventListener('pointermove', onPointerMove);
+
+function onResize() {
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
+	renderer.setSize(window.innerWidth, window.innerHeight);
+}
+window.addEventListener('resize', onResize);
+
+function animate() {
+	requestAnimationFrame(animate);
+	controls.update();
+	renderer.render(scene, camera);
+}
+animate();
+</script>
+</body>
+</html>

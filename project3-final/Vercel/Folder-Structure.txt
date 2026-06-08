@@ -1,0 +1,11 @@
+
+pathwayApp/
+  ├── pathwaylog2foldchange3d.html   -> app 3D (fonte)
+  ├── build_pathway_log2foldchange3d.py
+  ├── silver_pathway_areasv1.csv
+  └── map05171@2x_20260606_220006.png
+public/
+  ├── index.html                   -> deploy (cópia do HTML 3D)
+  └── map05171@2x_20260606_220006.png
+scripts/
+  └── sync-public.mjs

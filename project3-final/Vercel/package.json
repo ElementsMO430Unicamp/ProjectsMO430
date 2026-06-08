@@ -1,0 +1,14 @@
+{
+  "name": "long-covid-expression-geo",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "node scripts/sync-public.mjs",
+    "dev": "npm run build && serve public -l 4321",
+    "preview": "serve public -l 4321"
+  },
+  "devDependencies": {
+    "serve": "^14.2.4"
+  }
+}
