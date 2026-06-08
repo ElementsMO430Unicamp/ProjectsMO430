@@ -79,7 +79,6 @@ NIH (metadados clínicos PASC) | https://www.nih.gov/ | Conjunto complementar `A
 
 O grafo de propriedades modela entidades biológicas como nós tipados e relações como arestas ponderadas. Nós principais: **Gene/Proteína** (atributos: `symbol`, `geneid`, `log2foldchange`, `pvalue`, `padj`, `description`) e **Doença/Fenótipo** (atributos clínicos derivados de NIH/OpenTargets). Arestas: **Interação PPI** (atributos: `combined_score`, `experimentally_determined_interaction`, `database_annotated`, `automated_textmining`) e **Correlação de expressão em pathway** (atributos: `idarea`, `title` KEGG, `log2foldchange` agregado por área).
 
-![Modelo Lógico](assets/images/modelo-logico-grafos.png)
 
 ```mermaid
 erDiagram
