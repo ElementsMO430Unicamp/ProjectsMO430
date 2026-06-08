@@ -2,6 +2,8 @@
 
 Orquestração de pipeline de dados com **Apache Airflow** (instalação via **pip**, sem Docker), projeto da disciplina MO430 — módulo [`project3-final/Airflow/`](.) dentro do repositório MO430.
 
+Desenvolvimento Foi realizado em um repositório separado https://github.com/vivalladarez/mo430-data-pipeline/ para consolidação antes de colocar na organização desse repositório. 
+
 ## Estrutura de pastas
 
 Visão geral da raiz deste módulo (`project3-final/Airflow/`):
